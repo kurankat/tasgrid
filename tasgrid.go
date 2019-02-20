@@ -87,13 +87,25 @@ func NewGridPoint(name, eas, nor string, mg MapGrid) (gp GridPoint) {
 	return gp
 }
 
-// GetDecimalLat returns the latitude in decimal degrees of the GridPoint
+// GetFullEasting returns the full-length easting of the grid point
+func (gp GridPoint) GetFullEasting() (easting string) {
+	easting = strconv.FormatFloat(gp.fullEasting, 'f', 0, 64)
+	return easting
+}
+
+// GetFullNorthing returns the full-length northing of the grid point
+func (gp GridPoint) GetFullNorthing() (northing string) {
+	northing = strconv.FormatFloat(gp.fullNorthing, 'f', 0, 64)
+	return northing
+}
+
+// GetDecimalLat returns the latitude in decimal degrees of the grid point
 func (gp GridPoint) GetDecimalLat() (dLat string) {
 	dLat = strconv.FormatFloat(gp.decimalLat, 'f', 6, 64)
 	return dLat
 }
 
-// GetDecimalLong returns the longitude in decimal degrees of the GridPoint
+// GetDecimalLong returns the longitude in decimal degrees of the grid point
 func (gp GridPoint) GetDecimalLong() (dLong string) {
 	dLong = strconv.FormatFloat(gp.decimalLong, 'f', 6, 64)
 	return dLong
