@@ -8,10 +8,6 @@ import (
 	"strconv"
 )
 
-// MapGrid holds a dictionary of TASMAP three-letter acronyms
-// containing the map's necessary data to calculate the full grid reference
-type MapGrid map[string]TasMap
-
 // TasMap holds map-unique information
 type TasMap struct {
 	zone          int
@@ -20,6 +16,7 @@ type TasMap struct {
 	northingStart string
 }
 
+// NewTasMap generates the necessary information for each map
 func NewTasMap(mapInfo []string) TasMap {
 	zone, err := strconv.Atoi(mapInfo[1])
 	checkError(err)
@@ -79,6 +76,10 @@ func NewGridPoint(name, eas, nor string, mg MapGrid) (gp GridPoint) {
 
 	return gp
 }
+
+// MapGrid holds a dictionary of TASMAP three-letter acronyms
+// containing the map's necessary data to calculate the full grid reference
+type MapGrid map[string]TasMap
 
 // NewTasMapGrid returns a TasMap object
 func NewTasMapGrid() MapGrid {
