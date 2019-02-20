@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"strconv"
+
+	utm "github.com/kurankat/UTM"
 )
 
 // TasMap holds map-unique information
@@ -33,14 +35,18 @@ type GridPoint struct {
 	mapName      string
 	easting3d    string
 	northing3d   string
-	fullEasting  string
-	fullNorthing string
+	fullEasting  float64
+	fullNorthing float64
+	decimalLat   float64
+	decimalLong  float64
 }
 
 // NewGridPoint creates a GridPoint from the supplied map name and 3-digit
 // easting and northing
 func NewGridPoint(name, eas, nor string, mg MapGrid) (gp GridPoint) {
 	gp = GridPoint{mapName: name, easting3d: eas, northing3d: nor}
+	var strEasting string
+	var strNorthing string
 
 	easting, err := strconv.Atoi(eas)
 	checkError(err)
@@ -59,22 +65,38 @@ func NewGridPoint(name, eas, nor string, mg MapGrid) (gp GridPoint) {
 	checkError(err)
 
 	if easting > easEnd*10 {
-		gp.fullEasting = ess[:1] + eas + "00"
+		strEasting = ess[:1] + eas + "00"
 	} else {
 		newEss := strconv.Itoa(easStart + 1)
-		gp.fullEasting = newEss + eas + "00"
+		strEasting = newEss + eas + "00"
 	}
+	gp.fullEasting, err = strconv.ParseFloat(strEasting, 64)
 
 	if northing > norEnd*10 {
-		gp.fullNorthing = nss[:2] + nor + "00"
+		strNorthing = nss[:2] + nor + "00"
 	} else {
 		newNss := strconv.Itoa(norStart + 1)
-		gp.fullNorthing = newNss + nor + "00"
+		strNorthing = newNss + nor + "00"
 	}
+	gp.fullNorthing, err = strconv.ParseFloat(strNorthing, 64)
+
+	gp.decimalLat, gp.decimalLong, err = utm.ToLatLon(gp.fullEasting, gp.fullNorthing, 55, "G")
 
 	fmt.Println(eas, easEnd*10, easStart, nor, norEnd*10, norStart, gp.fullEasting, gp.fullNorthing)
 
 	return gp
+}
+
+// GetDecimalLat returns the latitude in decimal degrees of the GridPoint
+func (gp GridPoint) GetDecimalLat() (dLat string) {
+	dLat = strconv.FormatFloat(gp.decimalLat, 'f', 6, 64)
+	return dLat
+}
+
+// GetDecimalLong returns the longitude in decimal degrees of the GridPoint
+func (gp GridPoint) GetDecimalLong() (dLong string) {
+	dLong = strconv.FormatFloat(gp.decimalLong, 'f', 6, 64)
+	return dLong
 }
 
 // MapGrid holds a dictionary of TASMAP three-letter acronyms
