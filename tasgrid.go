@@ -164,7 +164,7 @@ func (gp GridPoint) GetLongSeconds() (secs string) {
 type MapGrid map[string]TasMap
 
 // NewTasMapGrid returns a TasMap object
-func NewTasMapGrid() MapGrid {
+func NewTasMapGrid() *MapGrid {
 	mapList := MapGrid{}
 
 	gopath := os.Getenv("GOPATH")
@@ -187,7 +187,7 @@ func NewTasMapGrid() MapGrid {
 		mapList[name] = NewTasMap(tasMap)
 	}
 
-	return mapList
+	return &mapList
 }
 
 func ddToDMS(dd float64) (degs, mins, secs float64) {
