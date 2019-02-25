@@ -192,16 +192,12 @@ func NewTasMapGrid() *MapGrid {
 
 func ddToDMS(dd float64) (degs, mins, secs float64) {
 
-	degs = math.Trunc(dd)                 // Degrees as float is the truncated decimal degrees
-	dMin := math.Abs(dd) - math.Abs(degs) // What remains right of the decimal point is the decimal mins
-	tempMins := dMin * 60.0               // Float minutes is decimal minutes * 60
-	mins = math.Trunc(tempMins)
-	dSecs := tempMins - mins
-	secs = dSecs * 60.0
-
-	// degs = strconv.FormatFloat(fDegs, 'f', 0, 64)
-	// mins = strconv.FormatFloat(fMins, 'f', 0, 64)
-	// secs = strconv.FormatFloat(fSecs, 'f', 1, 64)
+	degs = math.Trunc(dd)                    // Degrees as float is the truncated decimal degrees
+	minDiff := math.Abs(dd) - math.Abs(degs) // What remains right of the decimal point is the decimal mins
+	dMins := minDiff * 60.0                  // Float minutes is decimal minutes * 60
+	mins = math.Trunc(dMins)
+	secDiff := dMins - mins
+	secs = secDiff * 60.0
 
 	return
 }
