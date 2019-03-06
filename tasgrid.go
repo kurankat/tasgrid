@@ -17,8 +17,6 @@ import (
 // name of the map provided and the three-figure easting and northing
 type GridPoint struct {
 	MapName      string
-	easting3d    string
-	northing3d   string
 	fullEasting  float64
 	fullNorthing float64
 	decimalLat   float64
@@ -42,7 +40,7 @@ func NewGridPoint(name, eas, nor string, mg MapGrid) (GridPoint, error) {
 		return GridPoint{}, nil
 	}
 	mapName := strings.ToUpper(name)
-	gp := GridPoint{MapName: mapName, easting3d: eas, northing3d: nor}
+	gp := GridPoint{MapName: mapName}
 	var strEasting string
 	var strNorthing string
 
