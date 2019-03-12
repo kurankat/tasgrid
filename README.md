@@ -1,4 +1,5 @@
 # tasgrid
+
 Golang library to calculate full UTM grid reference for Tasmanian 6-figure grid references
 
 Many Tasmanian agencies and research organisations have traditionally geocoded biological observations using a map name and 6-figure grid reference. The Tasmanian Herbarium uses a three-letter code to designate a 1:100,000-series map (for example, HUO for Huon), and the following 6 figures to designate the point location within a 50 m radius.
