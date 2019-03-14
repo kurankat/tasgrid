@@ -33,76 +33,76 @@ type GridPoint struct {
 // easting and northing, and calculates the full easting and northing, as well as
 // the latitude and longitude of the record in decimal degrees and degrees, minutes and
 // seconds
-func NewGridPoint(name, eas, nor string, mg MapGrid) (GridPoint, error) {
+func NewGridPoint(name, textEasting, textNorthing string, mg MapGrid) (GridPoint, error) {
 	// Only proceed if the information consists of a three-letter map name, and three-figure
 	// easting and northings, assuming it is information from a TASMAP 1:100,000-series map
-	if len(name) != 3 || len(eas) != 3 || len(nor) != 3 {
+	if len(name) != 3 || len(textEasting) != 3 || len(textNorthing) != 3 {
 		return GridPoint{}, nil
 	}
 	mapName := strings.ToUpper(name)
 	gp := GridPoint{MapName: mapName}
-	var strEasting string
-	var strNorthing string
+	var stringFullEasting string
+	var stringFullNorthing string
 
 	// Convert string easting and northing to integers and return an error if problems arise
-	easting, err := strconv.Atoi(eas)
+	numEasting, err := strconv.Atoi(textEasting)
 	if err != nil {
-		return GridPoint{}, fmt.Errorf("ERROR parsing grid: I can't convert easting %v to an integer", eas)
+		return GridPoint{}, fmt.Errorf("ERROR parsing grid: I can't convert easting %v to an integer", textEasting)
 	}
-	northing, err := strconv.Atoi(nor)
+	numNorthing, err := strconv.Atoi(textNorthing)
 	if err != nil {
-		return GridPoint{}, fmt.Errorf("ERROR parsing grid: I can't convert northing %v to an integer", nor)
+		return GridPoint{}, fmt.Errorf("ERROR parsing grid: I can't convert northing %v to an integer", textNorthing)
 	}
 
-	ess := mg[mapName].eastingStart
-	nss := mg[mapName].northingStart
+	firstEasting := mg[mapName].eastingStart
+	firstNorthing := mg[mapName].northingStart
 
 	// If we don't have figures in the required fields, the map name may have been wrong - ignore and return an error
-	if len(ess)+len(nss) == 0 {
+	if len(firstEasting)+len(firstNorthing) == 0 {
 		return GridPoint{}, fmt.Errorf("ERROR parsing grid: I'm having trouble geting values for map %v", name)
 	}
 
 	// Convert the starting easting and northing lines to integers
-	easStart, err := strconv.Atoi(ess[:1])
-	norStart, err := strconv.Atoi(nss[:2])
+	numFirstEasting, err := strconv.Atoi(firstEasting[:1])
+	numFirstNorthing, err := strconv.Atoi(firstNorthing[:2])
 
 	// Extract the last two figures of the easting and northing starting lines to later determine how to calculate
 	// the complete easting and northing (if it carries over 99). Return errors if needed
-	easEnd, err := strconv.Atoi(ess[len(ess)-2:])
+	eastingVariable, err := strconv.Atoi(firstEasting[len(firstEasting)-2:])
 	if err != nil {
-		return GridPoint{}, fmt.Errorf("ERROR parsing grid: I can't extract a number from %v", ess)
+		return GridPoint{}, fmt.Errorf("ERROR parsing grid: I can't extract a number from %v", firstEasting)
 	}
-	norEnd, err := strconv.Atoi(nss[len(nss)-2:])
+	northingVariable, err := strconv.Atoi(firstNorthing[len(firstNorthing)-2:])
 	if err != nil {
-		return GridPoint{}, fmt.Errorf("ERROR parsing grid: I can't extract a number from %v", nss)
+		return GridPoint{}, fmt.Errorf("ERROR parsing grid: I can't extract a number from %v", firstNorthing)
 	}
 
 	// If the easting is greater than the first line easting on the map, append the first figure from the easting
 	// starting line and add two zeros to get a complete easting. However if the easting is a smaller number,
 	// we need to carry one because we wrap over 100.
-	if easting > easEnd*10 {
-		strEasting = ess[:1] + eas + "00"
+	if numEasting > eastingVariable*10 {
+		stringFullEasting = firstEasting[:1] + textEasting + "00"
 	} else {
-		newEss := strconv.Itoa(easStart + 1)
-		strEasting = newEss + eas + "00"
+		newFirstEasting := strconv.Itoa(numFirstEasting + 1)
+		stringFullEasting = newFirstEasting + textEasting + "00"
 	}
-	gp.fullEasting, err = strconv.ParseFloat(strEasting, 64)
+	gp.fullEasting, err = strconv.ParseFloat(stringFullEasting, 64)
 
 	// Ditto for the northing, but using the first two figures from the starting line
-	if northing > norEnd*10 {
-		strNorthing = nss[:2] + nor + "00"
+	if numNorthing > northingVariable*10 {
+		stringFullNorthing = firstNorthing[:2] + textNorthing + "00"
 	} else {
-		newNss := strconv.Itoa(norStart + 1)
-		strNorthing = newNss + nor + "00"
+		newFirstNorthing := strconv.Itoa(numFirstNorthing + 1)
+		stringFullNorthing = newFirstNorthing + textNorthing + "00"
 	}
-	gp.fullNorthing, err = strconv.ParseFloat(strNorthing, 64)
+	gp.fullNorthing, err = strconv.ParseFloat(stringFullNorthing, 64)
 
 	// Use utm library to calculate the decimal latitude and longitude. Treat King Island specimens in
 	// zone 54 as if they were zone 55, using the zone 55 numbers in the TASMAP maps (the error is small
 	// enough to be safely ignored)
 	gp.decimalLat, gp.decimalLong, err = utm.ToLatLon(gp.fullEasting, gp.fullNorthing, 55, "G")
 	if err != nil {
-		fmt.Printf("Map name: %v, 3f easting: %v, 3f northing: %v", mapName, eas, nor)
+		fmt.Printf("Map name: %v, 3f easting: %v, 3f northing: %v", mapName, textEasting, textNorthing)
 		panic(err)
 	}
 
