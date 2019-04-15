@@ -57,6 +57,8 @@ func NewGridPoint(name, textEasting, textNorthing string, mg MapGrid) (GridPoint
 	firstEasting := mg[mapName].eastingStart
 	firstNorthing := mg[mapName].northingStart
 
+	fmt.Println("Map starts: ", firstEasting, firstNorthing)
+
 	// If we don't have figures in the required fields, the map name may have been wrong - ignore and return an error
 	if len(firstEasting)+len(firstNorthing) == 0 {
 		return GridPoint{}, fmt.Errorf("ERROR parsing grid: I'm having trouble geting values for map %v", name)
@@ -65,6 +67,8 @@ func NewGridPoint(name, textEasting, textNorthing string, mg MapGrid) (GridPoint
 	// Convert the all but the last digit of the starting easting and northing lines to integers
 	numFirstEasting, err := strconv.Atoi(firstEasting[:1])
 	numFirstNorthing, err := strconv.Atoi(firstNorthing[:2])
+
+	fmt.Println("Numerical starts: ", numFirstEasting, numFirstNorthing)
 
 	// Extract the last two figures of the easting and northing starting lines to later determine how to calculate
 	// the complete easting and northing (if it carries over 99). Return errors if needed
@@ -77,23 +81,29 @@ func NewGridPoint(name, textEasting, textNorthing string, mg MapGrid) (GridPoint
 		return GridPoint{}, fmt.Errorf("ERROR parsing grid: I can't extract a number from %v", firstNorthing)
 	}
 
+	fmt.Println("Variable bits: ", eastingVariable, northingVariable)
+
 	// If the easting is greater than the first line easting on the map, append the first figure from the easting
 	// starting line and add two zeros to get a complete easting. However if the easting is a smaller number,
 	// we need to carry one because we wrap over 100.
 	if numEasting > eastingVariable*10 {
 		stringFullEasting = firstEasting[:1] + textEasting + "00"
+		fmt.Printf("%v is greater than %v\n", numEasting, eastingVariable*10)
 	} else {
 		newFirstEasting := strconv.Itoa(numFirstEasting + 1)
 		stringFullEasting = newFirstEasting + textEasting + "00"
+		fmt.Printf("%v is smaller than %v\n", numEasting, eastingVariable*10)
 	}
 	gp.fullEasting, err = strconv.ParseFloat(stringFullEasting, 64)
 
 	// Ditto for the northing, but using the first two figures from the starting line
 	if numNorthing > northingVariable*10 {
 		stringFullNorthing = firstNorthing[:2] + textNorthing + "00"
+		fmt.Printf("%v is greater than %v\n", numNorthing, northingVariable*10)
 	} else {
 		newFirstNorthing := strconv.Itoa(numFirstNorthing + 1)
 		stringFullNorthing = newFirstNorthing + textNorthing + "00"
+		fmt.Printf("%v is smaller than %v\n", numNorthing, northingVariable*10)
 	}
 	gp.fullNorthing, err = strconv.ParseFloat(stringFullNorthing, 64)
 
