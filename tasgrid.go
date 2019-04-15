@@ -62,7 +62,7 @@ func NewGridPoint(name, textEasting, textNorthing string, mg MapGrid) (GridPoint
 		return GridPoint{}, fmt.Errorf("ERROR parsing grid: I'm having trouble geting values for map %v", name)
 	}
 
-	// Convert the starting easting and northing lines to integers
+	// Convert the all but the last digit of the starting easting and northing lines to integers
 	numFirstEasting, err := strconv.Atoi(firstEasting[:1])
 	numFirstNorthing, err := strconv.Atoi(firstNorthing[:2])
 
