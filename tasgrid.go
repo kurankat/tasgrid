@@ -36,7 +36,10 @@ type GridPoint struct {
 func NewGridPoint(name, textEasting, textNorthing string, mg MapGrid) (GridPoint, error) {
 	// Only proceed if the information consists of a three-letter map name, and three-figure
 	// easting and northings, assuming it is information from a TASMAP 1:100,000-series map
-	if len(name) != 3 || len(textEasting) != 3 || len(textNorthing) != 3 {
+	if len(name) != 3 ||
+		len(textEasting) != 3 ||
+		len(textNorthing) != 3 ||
+		strings.ToUpper(name) == "KIN" {
 		return GridPoint{}, nil
 	}
 	mapName := strings.ToUpper(name)
@@ -57,7 +60,17 @@ func NewGridPoint(name, textEasting, textNorthing string, mg MapGrid) (GridPoint
 	firstEasting := mg[mapName].eastingStart
 	firstNorthing := mg[mapName].northingStart
 
-	fmt.Println("Map starts: ", firstEasting, firstNorthing)
+	// Calculate the range of acceptable eastings and northings from that map sheet
+	mapRangeW, err := strconv.ParseFloat(firstEasting+"000", 64)
+	if err != nil {
+		panic(err)
+	}
+	mapRangeS, err := strconv.ParseFloat(firstNorthing+"000", 64)
+	if err != nil {
+		panic(err)
+	}
+	mapRangeE := mapRangeW + 55000
+	mapRangeN := mapRangeS + 65000
 
 	// If we don't have figures in the required fields, the map name may have been wrong - ignore and return an error
 	if len(firstEasting)+len(firstNorthing) == 0 {
@@ -67,8 +80,6 @@ func NewGridPoint(name, textEasting, textNorthing string, mg MapGrid) (GridPoint
 	// Convert the all but the last digit of the starting easting and northing lines to integers
 	numFirstEasting, err := strconv.Atoi(firstEasting[:1])
 	numFirstNorthing, err := strconv.Atoi(firstNorthing[:2])
-
-	fmt.Println("Numerical starts: ", numFirstEasting, numFirstNorthing)
 
 	// Extract the last two figures of the easting and northing starting lines to later determine how to calculate
 	// the complete easting and northing (if it carries over 99). Return errors if needed
@@ -81,39 +92,42 @@ func NewGridPoint(name, textEasting, textNorthing string, mg MapGrid) (GridPoint
 		return GridPoint{}, fmt.Errorf("ERROR parsing grid: I can't extract a number from %v", firstNorthing)
 	}
 
-	fmt.Println("Variable bits: ", eastingVariable, northingVariable)
-
 	// If the easting is greater than the first line easting on the map, append the first figure from the easting
 	// starting line and add two zeros to get a complete easting. However if the easting is a smaller number,
 	// we need to carry one because we wrap over 100.
 	if numEasting > eastingVariable*10 {
 		stringFullEasting = firstEasting[:1] + textEasting + "00"
-		fmt.Printf("%v is greater than %v\n", numEasting, eastingVariable*10)
 	} else {
 		newFirstEasting := strconv.Itoa(numFirstEasting + 1)
 		stringFullEasting = newFirstEasting + textEasting + "00"
-		fmt.Printf("%v is smaller than %v\n", numEasting, eastingVariable*10)
 	}
 	gp.fullEasting, err = strconv.ParseFloat(stringFullEasting, 64)
 
 	// Ditto for the northing, but using the first two figures from the starting line
 	if numNorthing > northingVariable*10 {
 		stringFullNorthing = firstNorthing[:2] + textNorthing + "00"
-		fmt.Printf("%v is greater than %v\n", numNorthing, northingVariable*10)
 	} else {
 		newFirstNorthing := strconv.Itoa(numFirstNorthing + 1)
 		stringFullNorthing = newFirstNorthing + textNorthing + "00"
-		fmt.Printf("%v is smaller than %v\n", numNorthing, northingVariable*10)
 	}
 	gp.fullNorthing, err = strconv.ParseFloat(stringFullNorthing, 64)
+
+	// Check if easting and northing fall within the range of expected values for their map sheet
+	if gp.fullEasting < mapRangeW ||
+		gp.fullEasting > mapRangeE {
+		return GridPoint{}, fmt.Errorf("ERROR parsing grid: easting %v is out of the expected range for map %v", textEasting, gp.MapName)
+	}
+	if gp.fullNorthing < mapRangeS ||
+		gp.fullNorthing > mapRangeN {
+		return GridPoint{}, fmt.Errorf("ERROR parsing grid: northing %v is out of the expected range for map %v", textNorthing, gp.MapName)
+	}
 
 	// Use utm library to calculate the decimal latitude and longitude. Treat King Island specimens in
 	// zone 54 as if they were zone 55, using the zone 55 numbers in the TASMAP maps (the error is small
 	// enough to be safely ignored)
 	gp.decimalLat, gp.decimalLong, err = utm.ToLatLon(gp.fullEasting, gp.fullNorthing, 55, "G")
 	if err != nil {
-		fmt.Printf("Map name: %v, 3f easting: %v, 3f northing: %v", mapName, textEasting, textNorthing)
-		panic(err)
+		return GridPoint{}, fmt.Errorf("Map name: %v, 3f easting: %v, 3f northing: %v", mapName, textEasting, textNorthing)
 	}
 
 	// Calculate the DMS lat and long
