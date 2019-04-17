@@ -102,6 +102,9 @@ func NewGridPoint(name, textEasting, textNorthing string, mg MapGrid) (GridPoint
 		stringFullEasting = newFirstEasting + textEasting + "00"
 	}
 	gp.fullEasting, err = strconv.ParseFloat(stringFullEasting, 64)
+	if err != nil {
+		return GridPoint{}, fmt.Errorf("ERROR parsing grid: I can't extract a number from %v", stringFullEasting)
+	}
 
 	// Ditto for the northing, but using the first two figures from the starting line
 	if numNorthing > northingVariable*10 {
@@ -111,6 +114,9 @@ func NewGridPoint(name, textEasting, textNorthing string, mg MapGrid) (GridPoint
 		stringFullNorthing = newFirstNorthing + textNorthing + "00"
 	}
 	gp.fullNorthing, err = strconv.ParseFloat(stringFullNorthing, 64)
+	if err != nil {
+		return GridPoint{}, fmt.Errorf("ERROR parsing grid: I can't extract a number from %v", stringFullNorthing)
+	}
 
 	// Check if easting and northing fall within the range of expected values for their map sheet
 	if gp.fullEasting < mapRangeW ||
@@ -176,6 +182,33 @@ func (gp GridPoint) GetLongSeconds() (secs string) {
 		gp.longSecs = -gp.longSecs
 	}
 	secs = strconv.FormatFloat(gp.longSecs, 'f', 1, 64)
+	return
+}
+
+// GetDistance takes in a latitude and longitude and calculates the distance of that point to
+// the GridPoint
+func (gp GridPoint) GetDistance(lat, long string) (distance float64, err error) {
+	// Parse floats from string lat and long
+	fLat, err := strconv.ParseFloat(lat, 64)
+	if err != nil {
+		return distance, fmt.Errorf("I can't parse a latitude from %v", lat)
+	}
+	fLong, err := strconv.ParseFloat(long, 64)
+	if err != nil {
+		return distance, fmt.Errorf("I can't parse a longitude from %v", lat)
+	}
+
+	// Use UTM converter to derive full easting and northing
+	easting, northing, _, _, err := utm.FromLatLon(fLat, fLong, false)
+	if err != nil {
+		return distance, fmt.Errorf("UTM converter has trouble with lat %v & long %v", lat, long)
+	}
+
+	eastingDistance := math.Abs(gp.fullEasting - easting)
+	northingDistance := math.Abs(gp.fullNorthing - northing)
+
+	distance = math.Sqrt((eastingDistance * eastingDistance) + (northingDistance * northingDistance))
+
 	return
 }
 
