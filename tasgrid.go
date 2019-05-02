@@ -243,7 +243,7 @@ func NewTasMapGrid() *MapGrid {
 
 	// Locate the accessory data file "mapinfo.csv"
 	gopath := os.Getenv("GOPATH")
-	mapFile, err := os.Open(filepath.Join(gopath, "src/mypacks/tasgrid/mapinfo.csv"))
+	mapFile, err := os.Open(filepath.Join(gopath, "src/github.com/kurankat/tasgrid/mapinfo.csv"))
 	checkError(err)
 	defer mapFile.Close() // Defer closing until the program is done
 
