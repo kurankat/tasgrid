@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"unicode"
 
 	utm "github.com/kurankat/UTM"
 )
@@ -42,6 +43,14 @@ func NewGridPoint(name, textEasting, textNorthing string, mg MapGrid) (GridPoint
 		strings.ToUpper(name) == "KIN" {
 		return GridPoint{}, nil
 	}
+
+	// If the map contains digits, it is a NZ map, return empty gridpoint but no error
+	for _, c := range name {
+		if unicode.IsDigit(c) {
+			return GridPoint{}, nil
+		}
+	}
+
 	mapName := strings.ToUpper(name)
 	gp := GridPoint{MapName: mapName}
 	var stringFullEasting string
