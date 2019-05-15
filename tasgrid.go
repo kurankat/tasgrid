@@ -11,7 +11,7 @@ import (
 	"strings"
 	"unicode"
 
-	utm "github.com/kurankat/UTM"
+	utm "github.com/im7mortal/UTM"
 )
 
 // GridPoint holds all the necessary information pertaining to a grid point, calculated from the
@@ -39,8 +39,7 @@ func NewGridPoint(name, textEasting, textNorthing string, mg MapGrid) (GridPoint
 	// easting and northings, assuming it is information from a TASMAP 1:100,000-series map
 	if len(name) != 3 ||
 		len(textEasting) != 3 ||
-		len(textNorthing) != 3 ||
-		strings.ToUpper(name) == "KIN" {
+		len(textNorthing) != 3 {
 		return GridPoint{}, nil
 	}
 
