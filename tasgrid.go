@@ -35,6 +35,21 @@ type GridPoint struct {
 // the latitude and longitude of the record in decimal degrees and degrees, minutes and
 // seconds
 func NewGridPoint(name, textEasting, textNorthing string, mg MapGrid) (GridPoint, error) {
+	var mapName string            // Name of map in database, converted to uppercase
+	var gp GridPoint              // Main grid point to be returned
+	var stringFullEasting string  // Full UTM easting as a string
+	var stringFullNorthing string // Full UTM northing as a string
+	var numEasting int            // integer version of 3-digit grid reference easting from database
+	var numNorthing int           // integer version of 3-digit grid reference northing from database
+	var firstEasting string       // Westernmost (lowest) easting in map sheet, as a string
+	var firstNorthing string      // Southernmost (lowest) northing in map sheet, as a string
+	var lastEasting string        // Easternmost (highest) easting in map sheet, as a string
+	var lastNorthing string       // Northernomst (highest) northing in map sheet, as a string
+	var mapRangeW float64         // Full UTM version (numeric) of westernmost easting in map sheet
+	var mapRangeS float64         // Full UTM version (numeric) of southernmost easting in map sheet
+	var mapRangeE float64         // Full UTM version (numeric) of easternmost easting in map sheet
+	var mapRangeN float64         // Full UTM version (numeric) of northernmost easting in map sheet
+
 	// Only proceed if the information consists of a three-letter map name, and three-figure
 	// easting and northings, assuming it is information from a TASMAP 1:100,000-series map
 	if len(name) != 3 ||
@@ -50,35 +65,41 @@ func NewGridPoint(name, textEasting, textNorthing string, mg MapGrid) (GridPoint
 		}
 	}
 
-	mapName := strings.ToUpper(name)
-	gp := GridPoint{MapName: mapName}
-	var stringFullEasting string
-	var stringFullNorthing string
+	mapName = strings.ToUpper(name)
+	gp = GridPoint{MapName: mapName}
 
 	// Convert string easting and northing to integers and return an error if problems arise
 	numEasting, err := strconv.Atoi(textEasting)
 	if err != nil {
 		return GridPoint{}, fmt.Errorf("ERROR parsing grid: I can't convert easting %v to an integer", textEasting)
 	}
-	numNorthing, err := strconv.Atoi(textNorthing)
+	numNorthing, err = strconv.Atoi(textNorthing)
 	if err != nil {
 		return GridPoint{}, fmt.Errorf("ERROR parsing grid: I can't convert northing %v to an integer", textNorthing)
 	}
 
-	firstEasting := mg[mapName].eastingStart
-	firstNorthing := mg[mapName].northingStart
+	firstEasting = mg[mapName].eastingStart
+	firstNorthing = mg[mapName].northingStart
+	lastEasting = mg[mapName].eastingEnd
+	lastNorthing = mg[mapName].northingEnd
 
 	// Calculate the range of acceptable eastings and northings from that map sheet
-	mapRangeW, err := strconv.ParseFloat(firstEasting+"000", 64)
+	mapRangeW, err = strconv.ParseFloat(firstEasting+"000", 64)
 	if err != nil {
 		panic(err)
 	}
-	mapRangeS, err := strconv.ParseFloat(firstNorthing+"000", 64)
+	mapRangeE, err = strconv.ParseFloat(lastEasting+"000", 64)
 	if err != nil {
 		panic(err)
 	}
-	mapRangeE := mapRangeW + 55000
-	mapRangeN := mapRangeS + 65000
+	mapRangeS, err = strconv.ParseFloat(firstNorthing+"000", 64)
+	if err != nil {
+		panic(err)
+	}
+	mapRangeN, err = strconv.ParseFloat(lastNorthing+"000", 64)
+	if err != nil {
+		panic(err)
+	}
 
 	// If we don't have figures in the required fields, the map name may have been wrong - ignore and return an error
 	if len(firstEasting)+len(firstNorthing) == 0 {
@@ -223,10 +244,10 @@ func (gp GridPoint) GetDistance(lat, long string) (distance float64, err error) 
 // TasMap holds map-unique information: the UTM zone, alphanumeric code, as well as the lowest
 // easting and northing 1000m lines
 type TasMap struct {
-	zone          int
-	alpha         string
-	eastingStart  string
-	northingStart string
+	zone                       int
+	alpha                      string
+	eastingStart, eastingEnd   string
+	northingStart, northingEnd string
 }
 
 // newTasMap assigns the information provided in the argument (a slice of map information)
@@ -235,10 +256,12 @@ func newTasMap(mapInfo []string) TasMap {
 	zone, err := strconv.Atoi(mapInfo[1])
 	checkError(err)
 	alpha := mapInfo[2]
-	east := mapInfo[3]
-	north := mapInfo[4]
+	west := mapInfo[3]
+	east := mapInfo[4]
+	south := mapInfo[5]
+	north := mapInfo[6]
 
-	return TasMap{zone: zone, alpha: alpha, eastingStart: east, northingStart: north}
+	return TasMap{zone: zone, alpha: alpha, eastingStart: west, eastingEnd: east, northingStart: south, northingEnd: north}
 }
 
 // MapGrid holds a dictionary of TASMAP three-letter acronyms
