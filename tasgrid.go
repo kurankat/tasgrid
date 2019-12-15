@@ -86,19 +86,19 @@ func NewGridPoint(name, textEasting, textNorthing string, mg MapGrid) (GridPoint
 	// Calculate the range of acceptable eastings and northings from that map sheet
 	mapRangeW, err = strconv.ParseFloat(firstEasting+"000", 64)
 	if err != nil {
-		panic(err)
+		return GridPoint{}, fmt.Errorf("ERROR converting westernmost easting %v to a float", textNorthing)
 	}
 	mapRangeE, err = strconv.ParseFloat(lastEasting+"000", 64)
 	if err != nil {
-		panic(err)
+		return GridPoint{}, fmt.Errorf("ERROR converting easternmost easting %v to a float", textNorthing)
 	}
 	mapRangeS, err = strconv.ParseFloat(firstNorthing+"000", 64)
 	if err != nil {
-		panic(err)
+		return GridPoint{}, fmt.Errorf("ERROR converting southernmost easting %v to a float", textNorthing)
 	}
 	mapRangeN, err = strconv.ParseFloat(lastNorthing+"000", 64)
 	if err != nil {
-		panic(err)
+		return GridPoint{}, fmt.Errorf("ERROR converting northernmost easting %v to a float", textNorthing)
 	}
 
 	// If we don't have figures in the required fields, the map name may have been wrong - ignore and return an error
