@@ -11,7 +11,7 @@ import (
 	"strings"
 	"unicode"
 
-	utm "github.com/im7mortal/UTM"
+	utm "github.com/kurankat/UTM"
 )
 
 // GridPoint holds all the necessary information pertaining to a grid point, calculated from the
@@ -214,8 +214,8 @@ func (gp GridPoint) GetLongSeconds() (secs string) {
 	return
 }
 
-// GetDistance takes in a latitude and longitude and calculates the distance of that point to
-// the GridPoint
+// GetDistance takes a latitude and longitude in decimal degrees and
+// calculates the distance of that point to the GridPoint, in meters
 func (gp GridPoint) GetDistance(lat, long string) (distance float64, err error) {
 	// Parse floats from string lat and long
 	fLat, err := strconv.ParseFloat(lat, 64)
@@ -228,7 +228,7 @@ func (gp GridPoint) GetDistance(lat, long string) (distance float64, err error) 
 	}
 
 	// Use UTM converter to derive full easting and northing
-	easting, northing, _, _, err := utm.FromLatLon(fLat, fLong, false)
+	easting, northing, _, _, err := utm.FromLatLonZone(fLat, fLong, false, 55)
 	if err != nil {
 		return distance, fmt.Errorf("UTM converter has trouble with lat %v & long %v", lat, long)
 	}
