@@ -6,7 +6,6 @@ import (
 	"io"
 	"math"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"unicode"
@@ -272,14 +271,8 @@ type MapGrid map[string]TasMap
 func NewTasMapGrid() *MapGrid {
 	mapList := MapGrid{}
 
-	// Locate the accessory data file "mapinfo.csv"
-	gopath := os.Getenv("GOPATH")
-	mapFile, err := os.Open(filepath.Join(gopath, "src/github.com/kurankat/tasgrid/mapinfo.csv"))
-	checkError(err)
-	defer mapFile.Close() // Defer closing until the program is done
-
-	// Read it as a CSV file
-	mapReader := csv.NewReader(mapFile)
+	// Read map data as a CSV file
+	mapReader := csv.NewReader(strings.NewReader(mapInfo))
 
 	// Read each line into memory and use the data to create a tasMap object for each line
 	for {
