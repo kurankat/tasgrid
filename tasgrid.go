@@ -10,7 +10,7 @@ import (
 	"strings"
 	"unicode"
 
-	utm "github.com/kurankat/UTM"
+	utm "github.com/kurankat/tasutm"
 )
 
 // GridPoint holds all the necessary information pertaining to a grid point, calculated from the
