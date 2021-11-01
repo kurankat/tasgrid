@@ -1,4 +1,2 @@
-github.com/im7mortal/UTM v1.2.0 h1:+zEEbRNrhM8QUspF6G+iOgZ2L7wLXOppdv09FgDES/w=
-github.com/im7mortal/UTM v1.2.0/go.mod h1:2NjXqikKdBoolkoo3OEDLoxWW5thIIP4Wr76RBAtrYU=
-github.com/kurankat/UTM v1.2.0 h1:dhB8p0XaAvz97JQtQWUzcIVwFTYkoHElIfTmkhbdpgw=
-github.com/kurankat/UTM v1.2.0/go.mod h1:WGCEaa04SrthwWtUNO28gsDpg6TXyaerIwp51tFDkBc=
+github.com/kurankat/tasutm v0.0.0-20211023051438-7b8595c4d78b h1:JMi+XvWv7+3ZwZhbIbH02BnMKr0NZyKGVPHq93dAtRA=
+github.com/kurankat/tasutm v0.0.0-20211023051438-7b8595c4d78b/go.mod h1:9tuHidmy7rnBh3WmxWcN/RKTn1ZwMFgTLUFoOgdyGjY=
